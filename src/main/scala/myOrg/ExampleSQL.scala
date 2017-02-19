@@ -1,66 +1,53 @@
 package myOrg
 
-import java.io.File
-
 import org.apache.spark.SparkConf
-import org.apache.spark.sql.{DataFrame, SparkSession}
+import org.apache.spark.sql.SparkSession
+import org.locationtech.geomesa.spark.GeoMesaSparkKryoRegistrator
 
 object ExampleSQL extends App {
 
   val conf: SparkConf = new SparkConf()
-    .setAppName("exampleSQL")
+    .setAppName("geomesaSparkStarter")
     .setMaster("local[*]")
-    .set("spark.executor.extraJavaOptions", "-XX:+UseG1GC")
     .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
-    .set("spark.kryoserializer.buffer.max", "1G")
-    .set("spark.kryoserializer.buffer", "100m")
+    .set("spark.kryo.registrator", classOf[GeoMesaSparkKryoRegistrator].getName)
+  //    .set("spark.sql.crossJoin.enabled", "true")
 
   val spark: SparkSession = SparkSession
     .builder()
     .config(conf)
-    .enableHiveSupport()
+    //    .enableHiveSupport()
     .getOrCreate()
 
-  import spark.implicits._
+//    import spark.implicits._
 
-  val df = Seq(
-    (0, "A", "B", "C", "D"),
-    (1, "A", "B", "C", "D"),
-    (0, "d", "a", "jkl", "d"),
-    (0, "d", "g", "C", "D"),
-    (1, "A", "d", "t", "k"),
-    (1, "d", "c", "C", "D"),
-    (1, "c", "B", "C", "D")
-  ).toDF("TARGET", "col1", "col2", "col3TooMany", "col4")
+  val dsParams = Map(
+    "instanceId" -> "instance",
+    "zookeepers" -> "zoo1,zoo2,zoo3",
+    "user" -> "user",
+    "password" -> "*****",
+    "auths" -> "USER,ADMIN",
+    "tableName" -> "geomesa_catalog"
+  )
 
-  df.show
+  // Create DataFrame using the "geomesa" format
+  val dataFrame = spark.read
+    .format("geomesa")
+    .options(dsParams)
+    .option("geomesa.feature", "chicago")
+    .load()
+  dataFrame.show
+  dataFrame.createOrReplaceTempView("chicago")
 
-  // now using sql
-  df.createOrReplaceTempView("mydf")
-  spark.sql(
-    """
-      |SELECT * FROM mydf
-    """.stripMargin
-  ).show
+  // Query against the "chicago" schema
+  val sqlQuery = "select * from chicago where st_contains(st_makeBBOX(0.0, 0.0, 90.0, 90.0), geom)"
+  val resultDataFrame = spark.sql(sqlQuery)
 
-  val homeDir = System.getProperty("user.home");
-  var path = homeDir + File.separator + "directory" + File.separator
-  path = path.replaceFirst("^~", System.getProperty("user.home"))
+  resultDataFrame.show
 
-  //  val rawDf = readCsv(spark, path + "pathToFile")
+  // same thing using dataframe API - do not yet know how to use it
+//  dataFrame.filter(st_contains(st_makeBBOX(0.0, 0.0, 90.0, 90.0), 'geom)).show
 
   spark.stop
-
-  def readCsv(spark: SparkSession, inputPath: String): DataFrame = {
-    //    import spark.implicits._
-    spark.read.
-      option("header", "true")
-      .option("inferSchema", true)
-      .option("charset", "UTF-8")
-      .option("delimiter", ";")
-      .csv(inputPath)
-      .withColumn("col1", $"col1".cast("Date"))
-      .withColumnRenamed("col2", "colAAA")
-  }
 
 }

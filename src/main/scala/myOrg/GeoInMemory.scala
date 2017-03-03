@@ -4,8 +4,10 @@ package myOrg
 
 import java.sql.Date
 
-import org.apache.spark.SparkConf
-import org.apache.spark.sql.{Row, SparkSession}
+import org.apache.spark.sql.hive.HiveContext
+import org.apache.spark.{SparkConf, SparkContext}
+import org.apache.spark.sql.Row
+// TODO fix imports below none seems to be imported
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -19,11 +21,14 @@ object GeoInMemory extends App {
     .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
   //    .set("spark.sql.crossJoin.enabled", "true")
 
-  val spark: SparkSession = SparkSession
-    .builder()
-    .config(conf)
-    .enableHiveSupport()
-    .getOrCreate()
+  val sp: SparkContext = new SparkContext(conf)
+  val spark: HiveContext = new HiveContext(sp)
+  // below code for 2.0
+  //  val spark: SparkSession = SparkSession
+  //    .builder()
+  //    .config(conf)
+  //    .enableHiveSupport()
+  //    .getOrCreate()
 
   import spark.implicits._
   // TODO get data from hive, requires hive_metastore.xml be configured correctly and passed to spark
@@ -34,7 +39,7 @@ object GeoInMemory extends App {
   //    """.stripMargin)
 
   // spark schema for DataSet
-  case class SimpleChicago(id: Int, date: Date, coordX: Float, coordY: Float, someProperty:String)
+  case class SimpleChicago(id: Int, date: Date, coordX: Float, coordY: Float, someProperty: String)
 
   // geomesa index information, see readme for details how to configure index
   // this will not be used here, but rather in map function!!!!
@@ -58,9 +63,9 @@ object GeoInMemory extends App {
   // only for local data we can use https://github.com/locationtech/geomesa/tree/master/geomesa-memory with great indexing
 
   //val localData = df.collect // to somple, we need to map to collection of feature type
-  df.map(_.coordX) // this is simpler as dataset holds type information, TODO mapt to fitting simple feature
+  df.map(_.coordX)
+  // this is simpler as dataset holds type information, TODO mapt to fitting simple feature
   val localData = df.map { case Row(d, date, coordX, coordY, someProperty) => Map("period" -> period, "totalAmountLabel" -> sumTotalAmount) }.collect
-
 
 
   // create index
@@ -68,7 +73,7 @@ object GeoInMemory extends App {
   val spec = "Who:String:cq-index=default,*Where:Point:srid=4326"
   val sft = SimpleFeatureTypes.createType("test", spec)
 
-  def buildFeature(sft: SimpleFeatureType, fid: Int): SimpleFeature = ...
+  def buildFeature(sft: SimpleFeatureType, fid: Int): SimpleFeature = NoneFoobar
 
   val feats = (0 until 1000).map(buildFeature(sft, _))
   val newfeat = buildFeature(sft, 1001)

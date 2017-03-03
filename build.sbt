@@ -23,7 +23,8 @@ scalacOptions ++= Seq(
 javaOptions ++= Seq("-Xms512M", "-Xmx2048M", "-XX:MaxPermSize=2048M", "-XX:+CMSClassUnloadingEnabled")
 parallelExecution in Test := false
 
-lazy val spark = "2.1.0"
+lazy val spark = "1.6.3"
+//lazy val spark = "2.1.0"
 lazy val geomesa = "1.3.1-SNAPSHOT"
 
 resolvers += Resolver.mavenLocal
@@ -32,8 +33,8 @@ libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-core" % spark % "provided",
   "org.apache.spark" %% "spark-sql" % spark % "provided",
   "org.apache.spark" %% "spark-hive" % spark % "provided",
-//  "org.locationtech.geomesa" %% "geomesa-spark-sql" % geomesa // only use with persistent backend
-  "org.locationtech.geomesa" %% "geomesa-memory" % geomesa
+//  "org.locationtech.geomesa" %% "geomesa-spark-sql" % geomesa
+  "org.locationtech.geomesa" %% "geomesa-cqengine" % geomesa // for local in memory solution
 
 )
 

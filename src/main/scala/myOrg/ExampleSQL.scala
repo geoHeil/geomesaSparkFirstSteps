@@ -12,7 +12,7 @@ object ExampleSQL extends App {
     .setAppName("geomesaSparkStarter")
     .setMaster("local[*]")
     .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
-    .set("spark.kryo.registrator", classOf[GeoMesaSparkKryoRegistrator].getName)
+  //    .set("spark.kryo.registrator", classOf[GeoMesaSparkKryoRegistrator].getName)
   //    .set("spark.sql.crossJoin.enabled", "true")
 
   val spark: SparkSession = SparkSession
@@ -21,7 +21,7 @@ object ExampleSQL extends App {
     //    .enableHiveSupport()
     .getOrCreate()
 
-//    import spark.implicits._
+  //    import spark.implicits._
 
   val dsParams = Map(
     "instanceId" -> "instance",
@@ -48,7 +48,7 @@ object ExampleSQL extends App {
   resultDataFrame.show
 
   // same thing using dataframe API - do not yet know how to use it
-//  dataFrame.filter(st_contains(st_makeBBOX(0.0, 0.0, 90.0, 90.0), 'geom)).show
+  //  dataFrame.filter(st_contains(st_makeBBOX(0.0, 0.0, 90.0, 90.0), 'geom)).show
 
   spark.stop
 

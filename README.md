@@ -10,6 +10,7 @@ as spark will be launched inside sbt
 
 
 **dependencies**
+
 ```
 git clone https://github.com/locationtech/geomesa.git
 cd geomesa
@@ -17,6 +18,7 @@ mvn install -DskipTests=true
 ```
 
 **note**
+
 - currently this is configured for spark 2.1
 - for HDP 2.5 install spark 2 preview
 - make sure that spark-shell will not start spark 1.6
@@ -24,10 +26,12 @@ mvn install -DskipTests=true
 
 
 **index configuration**
+
 - good usage example https://github.com/locationtech/geomesa/blob/master/geomesa-memory/geomesa-cqengine/src/test/scala/org/locationtech/geomesa/memory/cqengine/utils/SampleFeatures.scala
 - http://www.geomesa.org/documentation/user/accumulo/data_management.html#attribute-indices
 
 **process overview**
+
 1. get data from hive into spark
 2. map the data to simpleFeature type
 3. collect to local JVM

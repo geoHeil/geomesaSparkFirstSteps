@@ -6,8 +6,10 @@ import java.sql.Date
 
 import org.apache.spark.SparkConf
 import org.apache.spark.sql.{Row, SparkSession}
+import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.locationtech.geomesa.memory.cqengine.GeoCQEngine
 
 object GeoInMemory extends App {
 
@@ -31,19 +33,32 @@ object GeoInMemory extends App {
   //      |FROM hive_table
   //    """.stripMargin)
 
+  // spark schema for DataSet
   case class SimpleChicago(id: Int, date: Date, coordX: Float, coordY: Float, someProperty:String)
+
+  // geomesa index information, see readme for details how to configure index
+  // this will not be used here, but rather in map function!!!!
+  val spec = List(
+    "Who:String:index=full",
+    "id:Integer",
+    "date:Date",
+    "*Where:Point:srid=4326",
+    "Why:String"
+  ).mkString(",")
+
   // instead for now manually some data from chicago
   val df = Seq(
     (1, "20160101T000000.000Z", -76.5, 38.5, "foo"),
     (2, "20160102T000000.000Z", -77.0, 38.0, "bar"),
     (3, "20160103T000000.000Z", -78.0, 39.0, "foo")
-  ).toDF("id", "date", "coordX", "coordY", "someProperty")
+  ).toDF("id", "date", "coordX", "coordY", "someProperty").as[SimpleChicago]
 
   df.show
   // assuming medum sized data, lets collect it locally
   // only for local data we can use https://github.com/locationtech/geomesa/tree/master/geomesa-memory with great indexing
 
   //val localData = df.collect // to somple, we need to map to collection of feature type
+  df.map(_.coordX) // this is simpler as dataset holds type information, TODO mapt to fitting simple feature
   val localData = df.map { case Row(d, date, coordX, coordY, someProperty) => Map("period" -> period, "totalAmountLabel" -> sumTotalAmount) }.collect
 
 

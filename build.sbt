@@ -32,7 +32,9 @@ libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-core" % spark % "provided",
   "org.apache.spark" %% "spark-sql" % spark % "provided",
   "org.apache.spark" %% "spark-hive" % spark % "provided",
-  "org.locationtech.geomesa" %% "geomesa-spark-sql" % geomesa
+//  "org.locationtech.geomesa" %% "geomesa-spark-sql" % geomesa // only use with persistent backend
+  "org.locationtech.geomesa" %% "geomesa-memory" % geomesa
+
 )
 
 run in Compile <<= Defaults.runTask(fullClasspath in Compile, mainClass in(Compile, run), runner in(Compile, run))

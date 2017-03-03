@@ -1,3 +1,5 @@
+// Copyright (C) 2017 Georg Heiler
+
 package myOrg
 
 import org.apache.spark.SparkConf

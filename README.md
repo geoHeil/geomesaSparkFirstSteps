@@ -15,3 +15,8 @@ git clone https://github.com/locationtech/geomesa.git
 cd geomesa
 mvn install -DskipTests=true
 ```
+
+**note**
+- currently this is configured for spark 2.1
+- for HDP 2.5 install spark 2 preview
+- make sure that spark-shell will not start spark 1.6

@@ -29,6 +29,12 @@ object GeoInMemory extends App {
     .setMaster("local[*]")
     .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
     .set("spark.kryo.registrator", classOf[GeoMesaSparkKryoRegistrator].getName)
+    //    .set("spark.kryoserializer.buffer.max", "1G")
+    //    .set("spark.kryoserializer.buffer", "100m")
+    //    .set("spark.kryo.registrationRequired", "true")
+    .registerKryoClasses(Array(
+      classOf[Point], classOf[SimpleFeature]
+    ))
   //    .set("spark.sql.crossJoin.enabled", "true")
 
   val sp: SparkContext = new SparkContext(conf)
@@ -80,6 +86,7 @@ object GeoInMemory extends App {
   ).toDF("id", "date", "coordX", "coordY", "someProperty").as[SimpleChicago]
 
   df.show
+  df.printSchema // TODO check kryo single binary flat for http://stackoverflow.com/questions/36648128/how-to-store-custom-objects-in-a-dataset
   // assuming medum sized data, lets collect it locally
   // only for local data we can use https://github.com/locationtech/geomesa/tree/master/geomesa-memory with great indexing
 
@@ -92,8 +99,8 @@ object GeoInMemory extends App {
     builder.buildFeature(f.id.toString)
   }
 
-  //val localData = df.collect // to somple, we need to map to collection of feature type
-  val localData = df.map(buildFeature(_)).collect
+  val localData = df.map(buildFeature(_)).collect // mapping distributed will fail due to missing encoder
+  //val localData = df.collect.toSeq.map(buildFeature(_)) // this is a workaround, but not really great.
 
   // create a new cache
   val cq = new GeoCQEngine(sft)

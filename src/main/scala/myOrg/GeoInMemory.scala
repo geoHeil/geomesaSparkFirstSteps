@@ -73,12 +73,6 @@ object GeoInMemory extends App {
 
   val builder = new SimpleFeatureBuilder(sft)
 
-  // TODO map values to correct format i.e. coordinates to point an the whole thing to a collection of simple feature type
-  val x = Random.nextDouble
-  val y = Random.nextDouble
-  WKTUtils.read(s"POINT($x $y)").asInstanceOf[Point]
-
-  // instead for now manually some data from chicago
   val df = Seq(
     (1, "2016-01-01", -76.5, 38.5, "foo"),
     (2, "2016-01-01", -77.0, 38.0, "bar"),
@@ -91,6 +85,7 @@ object GeoInMemory extends App {
 
   def buildFeature(f: SimpleChicago): SimpleFeature = {
     // TODO infer this mapping with less boilerplate code
+    // TODO http://stackoverflow.com/questions/36648128/how-to-store-custom-objects-in-a-dataset to fix missing encoder error?
     builder.set("date", f.date)
     builder.set("location", WKTUtils.read(s"POINT(${f.coordX} ${f.coordY})").asInstanceOf[Point])
     builder.set("someProperty", f.someProperty)

@@ -6,18 +6,19 @@ import java.sql.Date
 
 import com.vividsolutions.jts.geom.Point
 import org.apache.spark.sql.hive.HiveContext
-import org.apache.spark.{SparkConf, SparkContext}
-import org.apache.spark.sql.{Row, SQLContext, SaveMode}
-import org.geotools.factory.CommonFactoryFinder
+import org.apache.spark.{ SparkConf, SparkContext }
+import org.apache.spark.sql.{ Row, SQLContext, SaveMode }
+//import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.simple.SimpleFeatureBuilder
+import org.locationtech.geomesa.spark.GeoMesaSparkKryoRegistrator
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.opengis.filter.Filter
+//import org.opengis.filter.Filter
 
 import scala.util.Random
 // TODO fix imports below none seems to be imported
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.feature.simple.{ SimpleFeature, SimpleFeatureType }
 import org.locationtech.geomesa.memory.cqengine.GeoCQEngine
 import collection.JavaConversions._
 
@@ -27,6 +28,7 @@ object GeoInMemory extends App {
     .setAppName("geomesaSparkInMemory")
     .setMaster("local[*]")
     .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
+    .set("spark.kryo.registrator", classOf[GeoMesaSparkKryoRegistrator].getName)
   //    .set("spark.sql.crossJoin.enabled", "true")
 
   val sp: SparkContext = new SparkContext(conf)
@@ -120,7 +122,6 @@ object GeoInMemory extends App {
 
   // put the result back into spark
   // TODO parallelize queried result
-
 
   // send back to hive, requires hive context!
   // TODO find a better way to store data in hive

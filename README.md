@@ -27,7 +27,8 @@ mvn install -DskipTests=true
 
 **index configuration**
 
-- good usage example https://github.com/locationtech/geomesa/blob/master/geomesa-memory/geomesa-cqengine/src/test/scala/org/locationtech/geomesa/memory/cqengine/utils/SampleFeatures.scala
+- good usage examples
+    - https://github.com/locationtech/geomesa/blob/master/geomesa-memory/geomesa-cqengine/src/test/scala/org/locationtech/geomesa/memory/cqengine/utils/SampleFeatures.scala#L104-L259
 - http://www.geomesa.org/documentation/user/accumulo/data_management.html#attribute-indices
 
 **process overview**

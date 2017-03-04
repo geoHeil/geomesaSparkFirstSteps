@@ -2,9 +2,8 @@
 
 package myOrg
 
-import org.apache.spark.SparkConf
-import org.apache.spark.sql.SparkSession
-import org.locationtech.geomesa.spark.GeoMesaSparkKryoRegistrator
+import org.apache.spark.{ SparkConf, SparkContext }
+import org.apache.spark.sql.SQLContext
 
 object ExampleSQL extends App {
 
@@ -15,11 +14,14 @@ object ExampleSQL extends App {
   //    .set("spark.kryo.registrator", classOf[GeoMesaSparkKryoRegistrator].getName)
   //    .set("spark.sql.crossJoin.enabled", "true")
 
-  val spark: SparkSession = SparkSession
-    .builder()
-    .config(conf)
-    //    .enableHiveSupport()
-    .getOrCreate()
+  val sp: SparkContext = new SparkContext(conf)
+  val spark: SQLContext = new SQLContext(sp) // use sql context as long as hive metastore stuff or complex queries are not required (for 1.6)
+  //  val spark: HiveContext = new HiveContext(sp)
+  //  val spark: SparkSession = SparkSession
+  //    .builder()
+  //    .config(conf)
+  //    .enableHiveSupport()
+  //    .getOrCreate()
 
   //    import spark.implicits._
 
@@ -39,7 +41,8 @@ object ExampleSQL extends App {
     .option("geomesa.feature", "chicago")
     .load()
   dataFrame.show
-  dataFrame.createOrReplaceTempView("chicago")
+  dataFrame.registerTempTable("chicago")
+  //  dataFrame.createOrReplaceTempView("chicago")
 
   // Query against the "chicago" schema
   val sqlQuery = "select * from chicago where st_contains(st_makeBBOX(0.0, 0.0, 90.0, 90.0), geom)"
@@ -50,6 +53,6 @@ object ExampleSQL extends App {
   // same thing using dataframe API - do not yet know how to use it
   //  dataFrame.filter(st_contains(st_makeBBOX(0.0, 0.0, 90.0, 90.0), 'geom)).show
 
-  spark.stop
+  sp.stop
 
 }

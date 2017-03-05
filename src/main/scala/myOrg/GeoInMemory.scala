@@ -6,8 +6,10 @@ import java.sql.Date
 
 import com.vividsolutions.jts.geom.Point
 import org.apache.spark.sql.hive.HiveContext
-import org.apache.spark.{SparkConf, SparkContext}
-import org.apache.spark.sql.{Row, SQLContext, SaveMode}
+import org.apache.spark.{ SparkConf, SparkContext }
+import org.apache.spark.sql.{ Row, SQLContext, SaveMode }
+import org.geotools.factory.CommonFactoryFinder
+import org.opengis.filter.Filter
 //import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.locationtech.geomesa.spark.GeoMesaSparkKryoRegistrator
@@ -17,7 +19,7 @@ import org.locationtech.geomesa.utils.text.WKTUtils
 // TODO fix imports below none seems to be imported
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.feature.simple.{ SimpleFeature, SimpleFeatureType }
 import org.locationtech.geomesa.memory.cqengine.GeoCQEngine
 import collection.JavaConversions._
 
@@ -34,8 +36,8 @@ object GeoInMemory extends App {
     //    .set("spark.kryoserializer.buffer", "100m")
     //    .set("spark.kryo.registrationRequired", "true")
     .registerKryoClasses(Array(
-    classOf[Point], classOf[SimpleFeature]
-  ))
+      classOf[Point], classOf[SimpleFeature]
+    ))
   //    .set("spark.sql.crossJoin.enabled", "true")
 
   val sp: SparkContext = new SparkContext(conf)
@@ -113,16 +115,21 @@ object GeoInMemory extends App {
 
   // TODO setup some convenience functions for easier queries
   // get a FeatureReader with all features that match a filter
-  //  implicit def stringToFilter(s: String): Filter = ECQL.toFilter(s)
+  implicit def stringToFilter(s: String): Filter = ECQL.toFilter(s)
 
-  //  val ff = CommonFactoryFinder.getFilterFactory2
+  val ff = CommonFactoryFinder.getFilterFactory2
 
-  //  val f = ECQL.toFilter("someProperty = 'foo'")
-  val f = ECQL.toFilter("someProperty = 'foo' AND BBOX(location, 0, 0, 180, 90)")
+  // big enough so there are likely to be points in them
+  val bbox1 = "POLYGON((-89 89, -1 89, -1 -89, -89 -89, -89 89))"
+  val f = s"someProperty LIKE '%oo'"
+  //  val f = s"INTERSECTS(location, $bbox1)" // no results as well. Strange inverse returns no results as well
+  //  val f = s"NOT (INTERSECTS(location, $bbox1))" // no results
+  //  val f = ECQL.toFilter("someProperty = 'foo' AND BBOX(location, 0, 0, 180, 90)")
   val reader = cq.getReaderForFilter(f)
   // TODO this is not scala style
   println("checking for results")
   // TODO very strange, no results obtained.
+//  print(reader.next().getAttributeCount)
   while (reader.hasNext) {
     val next = reader.next()
     println(next)

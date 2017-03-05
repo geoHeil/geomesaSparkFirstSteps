@@ -34,7 +34,9 @@ libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-sql" % spark % "provided",
   "org.apache.spark" %% "spark-hive" % spark % "provided",
   "org.locationtech.geomesa" %% "geomesa-spark-sql" % geomesa, // keep for convenience of kryo registrator
-  "org.locationtech.geomesa" %% "geomesa-cqengine" % geomesa // for local in memory solution
+  "org.locationtech.geomesa" %% "geomesa-cqengine" % geomesa, // for local in memory solution
+  "com.typesafe.scala-logging" %% "scala-logging" % "3.5.0"
+
 )
 
 run in Compile <<= Defaults.runTask(fullClasspath in Compile, mainClass in(Compile, run), runner in(Compile, run))
@@ -49,26 +51,37 @@ test in assembly := {}
 
 initialCommands in console :=
   """
-    |import java.io.File
-    |
-    |import org.apache.spark.SparkConf
-    |import org.apache.spark.sql.{DataFrame, SparkSession}
+    |import com.vividsolutions.jts.geom.Point
+    |import org.apache.spark.sql.hive.HiveContext
+    |import org.apache.spark.{ SparkConf, SparkContext }
+    |import org.apache.spark.sql.{ Row, SQLContext, SaveMode }
+    |import org.geotools.factory.CommonFactoryFinder
+    |import org.geotools.feature.simple.SimpleFeatureBuilder
+    |import org.locationtech.geomesa.spark.GeoMesaSparkKryoRegistrator
+    |import org.locationtech.geomesa.utils.text.WKTUtils
+    |import org.opengis.filter.Filter
+    |import org.geotools.filter.text.ecql.ECQL
+    |import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+    |import org.opengis.feature.simple.{ SimpleFeature, SimpleFeatureType }
+    |import org.locationtech.geomesa.memory.cqengine.GeoCQEngine
+    |import collection.JavaConversions._
+    |import java.sql.Date
     |
     |val conf: SparkConf = new SparkConf()
-    |    .setAppName("geomesaSparkStarter")
+    |    .setAppName("geomesaSparkInMemory")
     |    .setMaster("local[*]")
-    |    .set("spark.executor.extraJavaOptions", "-XX:+UseG1GC")
     |    .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
-    |    .set("spark.kryoserializer.buffer.max", "1G")
-    |    .set("spark.kryoserializer.buffer", "100m")
+    |    .set("spark.kryo.registrator", classOf[GeoMesaSparkKryoRegistrator].getName)
+    |    .registerKryoClasses(Array(
+    |      classOf[Point], classOf[SimpleFeature]
+    |    ))
+    |  //    .set("spark.sql.crossJoin.enabled", "true")
     |
-    |  val spark: SparkSession = SparkSession
-    |    .builder()
-    |    .config(conf)
-    |    .enableHiveSupport()
-    |    .getOrCreate()
+    |  val sp: SparkContext = new SparkContext(conf)
+    |  val spark: SQLContext = new SQLContext(sp) // use sql context as long as hive metastore stuff or complex queries are not required (for 1.6)
+    |  //  val spark: HiveContext = new HiveContext(sp)
     |
-    |  import spark.implicits._
+    |import spark.implicits._
   """.stripMargin
 
 mainClass := Some("myOrg.ExampleSQL")

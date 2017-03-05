@@ -6,21 +6,22 @@ import java.sql.Date
 
 import com.vividsolutions.jts.geom.Point
 import org.apache.spark.sql.hive.HiveContext
-import org.apache.spark.{ SparkConf, SparkContext }
-import org.apache.spark.sql.{ Row, SQLContext, SaveMode }
+import org.apache.spark.{SparkConf, SparkContext}
+import org.apache.spark.sql.{Row, SQLContext, SaveMode}
 //import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.locationtech.geomesa.spark.GeoMesaSparkKryoRegistrator
 import org.locationtech.geomesa.utils.text.WKTUtils
 //import org.opengis.filter.Filter
 
-import scala.util.Random
 // TODO fix imports below none seems to be imported
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.opengis.feature.simple.{ SimpleFeature, SimpleFeatureType }
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.locationtech.geomesa.memory.cqengine.GeoCQEngine
 import collection.JavaConversions._
+
+case class SimpleChicago(id: Int, date: Date, coordX: Double, coordY: Double, someProperty: String)
 
 object GeoInMemory extends App {
 
@@ -33,8 +34,8 @@ object GeoInMemory extends App {
     //    .set("spark.kryoserializer.buffer", "100m")
     //    .set("spark.kryo.registrationRequired", "true")
     .registerKryoClasses(Array(
-      classOf[Point], classOf[SimpleFeature]
-    ))
+    classOf[Point], classOf[SimpleFeature]
+  ))
   //    .set("spark.sql.crossJoin.enabled", "true")
 
   val sp: SparkContext = new SparkContext(conf)
@@ -54,9 +55,6 @@ object GeoInMemory extends App {
   //      |SELECT *
   //      |FROM hive_table
   //    """.stripMargin)
-
-  // spark schema for DataSet
-  case class SimpleChicago(id: Int, date: Date, coordX: Float, coordY: Float, someProperty: String)
 
   // geomesa index information, see readme for details how to configure index
   // this will not be used here, but rather in map function!!!!
@@ -79,15 +77,17 @@ object GeoInMemory extends App {
 
   val builder = new SimpleFeatureBuilder(sft)
 
+  //  for 1.6 spark the case class does not seem to be in scope. weird errors. sbt run works fine though.
+  // But that is not convenient
   val df = Seq(
     (1, "2016-01-01", -76.5, 38.5, "foo"),
     (2, "2016-01-01", -77.0, 38.0, "bar"),
-    (3, "2016-ß2-02", -78.0, 39.0, "foo")
+    (3, "2016-02-02", -78.0, 39.0, "foo")
   ).toDF("id", "date", "coordX", "coordY", "someProperty").as[SimpleChicago]
 
   df.show
   df.printSchema // TODO check kryo single binary flat for http://stackoverflow.com/questions/36648128/how-to-store-custom-objects-in-a-dataset
-  // assuming medum sized data, lets collect it locally
+  // assuming medium sized data, lets collect it locally
   // only for local data we can use https://github.com/locationtech/geomesa/tree/master/geomesa-memory with great indexing
 
   def buildFeature(f: SimpleChicago): SimpleFeature = {
@@ -99,8 +99,8 @@ object GeoInMemory extends App {
     builder.buildFeature(f.id.toString)
   }
 
-  val localData = df.map(buildFeature(_)).collect // mapping distributed will fail due to missing encoder
-  //val localData = df.collect.toSeq.map(buildFeature(_)) // this is a workaround, but not really great.
+  //  val localData = df.map(buildFeature(_)).collect // mapping distributed will fail due to missing encoder
+  val localData = df.collect.toSeq.map(buildFeature(_)) // this is a workaround, but not really great.
 
   // create a new cache
   val cq = new GeoCQEngine(sft)
@@ -117,8 +117,18 @@ object GeoInMemory extends App {
 
   //  val ff = CommonFactoryFinder.getFilterFactory2
 
-  val f = ECQL.toFilter("someProperty = 'foo' AND BBOX(Where, 0, 0, 180, 90)")
+  //  val f = ECQL.toFilter("someProperty = 'foo'")
+  val f = ECQL.toFilter("someProperty = 'foo' AND BBOX(location, 0, 0, 180, 90)")
   val reader = cq.getReaderForFilter(f)
+  // TODO this is not scala style
+  println("checking for results")
+  // TODO very strange, no results obtained.
+  while (reader.hasNext) {
+    val next = reader.next()
+    println(next)
+    println(next.getID)
+    println(next.getAttribute("location"))
+  }
 
   // todo play with queries from https://github.com/locationtech/geomesa/blob/master/geomesa-memory/geomesa-cqengine/src/test/scala/org/locationtech/geomesa/memory/cqengine/utils/SampleFeatures.scala#L104-L259
 

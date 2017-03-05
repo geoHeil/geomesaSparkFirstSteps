@@ -23,8 +23,9 @@ scalacOptions ++= Seq(
 javaOptions ++= Seq("-Xms512M", "-Xmx2048M", "-XX:MaxPermSize=2048M", "-XX:+CMSClassUnloadingEnabled")
 parallelExecution in Test := false
 
-lazy val spark = "1.6.3"
-//lazy val spark = "2.1.0"
+// choose 2.1 as this fixes several bugs in spark and deprecated API from 1.6 is still available !!!
+//lazy val spark = "1.6.3"
+lazy val spark = "2.1.0"
 lazy val geomesa = "1.3.1-SNAPSHOT"
 
 resolvers += Resolver.mavenLocal

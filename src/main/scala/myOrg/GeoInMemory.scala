@@ -110,9 +110,6 @@ object GeoInMemory extends App {
   // add a collection of features
   cq.addAll(localData.toSeq)
 
-  // clear the cache
-  cq.clear()
-
   // TODO setup some convenience functions for easier queries
   // get a FeatureReader with all features that match a filter
   implicit def stringToFilter(s: String): Filter = ECQL.toFilter(s)
@@ -120,21 +117,36 @@ object GeoInMemory extends App {
   val ff = CommonFactoryFinder.getFilterFactory2
 
   // big enough so there are likely to be points in them
+//  available filters http://docs.geoserver.org/latest/en/user/filter/function_reference.html#filter-function-reference
   val bbox1 = "POLYGON((-89 89, -1 89, -1 -89, -89 -89, -89 89))"
-  val f = s"someProperty LIKE '%oo'"
-  //  val f = s"INTERSECTS(location, $bbox1)" // no results as well. Strange inverse returns no results as well
-  //  val f = s"NOT (INTERSECTS(location, $bbox1))" // no results
-  //  val f = ECQL.toFilter("someProperty = 'foo' AND BBOX(location, 0, 0, 180, 90)")
-  val reader = cq.getReaderForFilter(f)
-  // TODO this is not scala style
-  println("checking for results")
-  // TODO very strange, no results obtained.
-//  print(reader.next().getAttributeCount)
-  while (reader.hasNext) {
-    val next = reader.next()
-    println(next)
-    println(next.getID)
-    println(next.getAttribute("location"))
+  queryGeo("someProperty LIKE '%oo'")
+  println("#############")
+  queryGeo(s"INTERSECTS(location, ${bbox1})")
+  println("#############")
+  queryGeo("someProperty = 'foo' AND BBOX(location, 0, 0, 180, 90)")
+  println("#############")
+  queryGeo(s"INTERSECTS(location, ${bbox1}) AND date DURING 2014-03-01T00:00:00.000Z/2014-09-30T23:59:59.000Z")
+  println("#############")
+  queryGeo(s"INTERSECTS(location, ${bbox1})")
+  println("#############")
+  queryGeo(s"OVERLAPS(location, ${bbox1})")
+  println("#############")
+  queryGeo(s"WITHIN(location, ${bbox1})")
+  println("#############")
+  queryGeo(s"CONTAINS(location, ${bbox1})")
+  println("#############")
+  queryGeo(s"CROSSES(location, ${bbox1})")
+  println("#############")
+  queryGeo(s"BBOX(location, -180, 0, 0, 90)")
+
+  def queryGeo(f: String): Unit = {
+    println(f)
+    // TODO this is not scala style
+    val reader = cq.getReaderForFilter(f)
+    while (reader.hasNext) {
+      val next = reader.next()
+      println(next)
+    }
   }
 
   // todo play with queries from https://github.com/locationtech/geomesa/blob/master/geomesa-memory/geomesa-cqengine/src/test/scala/org/locationtech/geomesa/memory/cqengine/utils/SampleFeatures.scala#L104-L259

@@ -51,7 +51,7 @@ What I want to achieve is:
 
 Some thoughts
 
-- we might need an R tree to do efficient multi polygon lookups
+- we might need an R tree to do efficient multi polygon lookups. Geomesa in memory only supports points not polygons
     - see chat here https://gitter.im/locationtech/geomesa with comments of @jnh5y 
     > I think I'd just write the obvious filters against a list of bounding boxes
       if I recall, the GeoMesa In-Memory module creating a simple index for points

@@ -40,3 +40,15 @@ mvn install -DskipTests=true
 5. query index
 6. re-parallelize results into a spark data frame
 7. write results back to hive
+
+**index join**
+
+- we might need an R tree to do efficient multi polygon lookups
+    - see chat here https://gitter.im/locationtech/geomesa with comments of @jnh5y 
+    > I think I'd just write the obvious filters against a list of bounding boxes
+      if I recall, the GeoMesa In-Memory module creating a simple index for points
+      since it doesn't support bounding boxes / non-point geometries, you'd need to grab JTS's R-Tree implementation and roll something manually
+    - or iteratively check for each point if `WITHIN` or `WITHIN` evaluates to true
+- java R tree implementations, but do not seem to handle multi polygons
+    - https://github.com/meetup/archery
+    - https://github.com/davidmoten/rtree

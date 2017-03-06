@@ -68,6 +68,9 @@ initialCommands in console :=
     |import org.locationtech.geomesa.memory.cqengine.GeoCQEngine
     |import collection.JavaConversions._
     |import java.sql.Date
+    |import scala.language.implicitConversions
+    |import scala.collection.generic.Growable
+    |import scala.collection.mutable
     |
     |val conf: SparkConf = new SparkConf()
     |    .setAppName("geomesaSparkInMemory")

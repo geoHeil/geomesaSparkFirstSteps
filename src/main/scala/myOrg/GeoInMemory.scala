@@ -157,6 +157,10 @@ object GeoInMemory extends App {
   // put the result back into spark TODO put it into spark after selecting relevant features
   //  val geoDf = geoResult.toDS()
   //  geoDf.show
+  //  import spark.sparkSession.implicits._
+  //  import spark.implicits._
+  geoResult.toDS() // will not work. wrong type inferred?
+  //spark.createDataFrame(geoResult)
 
   // send back to hive, requires hive context!
   // TODO find a better way to store data in hive

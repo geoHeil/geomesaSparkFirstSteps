@@ -73,3 +73,8 @@ Some thoughts
 - other geo spatial spark solutionsgeospgeosp
     - http://geospark.datasyslab.org/ spatial join example directly on their site, but only seems to use point with rectangle and not multypolygon, based on R tree as well
     - https://github.com/harsha2010/magellan
+    = https://github.com/InitialDLab/Simba
+    
+    
+## next steps
+- try all solutions on own (and bigger) amount of data

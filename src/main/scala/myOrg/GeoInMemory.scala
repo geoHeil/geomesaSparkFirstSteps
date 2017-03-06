@@ -118,6 +118,8 @@ object GeoInMemory extends App {
   // big enough so there are likely to be points in them
   //  available filters http://docs.geoserver.org/latest/en/user/filter/function_reference.html#filter-function-reference
   val bbox1 = "POLYGON((-89 89, -1 89, -1 -89, -89 -89, -89 89))"
+  val bbox2 = "POLYGON((-180 90, 0 90, 0 0, -180 0, -180 90))"
+  val bboxes = Seq(bbox1, bbox2) // TODO maybe map to type?
   queryGeo("someProperty LIKE '%oo'")
   println("#############")
   val geoResult = queryGeo(s"INTERSECTS(location, ${bbox1})")
@@ -138,6 +140,9 @@ object GeoInMemory extends App {
   println("#############")
   queryGeo(s"BBOX(location, -180, 0, 0, 90)")
 
+  // TODO perform a query which gives me all the bounding boxes which overlap with my point.
+  // TODO how to do this query with a large number of boxes?
+
   def queryGeo(f: String): Seq[SimpleFeature] = {
     val result: collection.Seq[SimpleFeature] with Growable[SimpleFeature] = mutable.Buffer[SimpleFeature]()
     println(f)
@@ -156,11 +161,7 @@ object GeoInMemory extends App {
 
   // put the result back into spark TODO put it into spark after selecting relevant features
   //  val geoDf = geoResult.toDS()
-  //  geoDf.show
-  //  import spark.sparkSession.implicits._
-  //  import spark.implicits._
-  geoResult.toDS() // will not work. wrong type inferred?
-  //spark.createDataFrame(geoResult)
+  // TODO map simple feature to tuple of feature ID and bounding box ID and return these
 
   // send back to hive, requires hive context!
   // TODO find a better way to store data in hive

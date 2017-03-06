@@ -142,6 +142,8 @@ object GeoInMemory extends App {
 
   // TODO perform a query which gives me all the bounding boxes which overlap with my point.
   // TODO how to do this query with a large number of boxes?
+  // put boundingboxes into index
+  // iterate over each point and check intersects with each boundingbox
 
   def queryGeo(f: String): Seq[SimpleFeature] = {
     val result: collection.Seq[SimpleFeature] with Growable[SimpleFeature] = mutable.Buffer[SimpleFeature]()

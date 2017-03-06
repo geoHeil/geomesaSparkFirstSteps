@@ -13,12 +13,15 @@ import org.opengis.filter.Filter
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.locationtech.geomesa.spark.GeoMesaSparkKryoRegistrator
 import org.locationtech.geomesa.utils.text.WKTUtils
-
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeature
 import org.locationtech.geomesa.memory.cqengine.GeoCQEngine
+
 import collection.JavaConversions._
+import scala.collection.generic.Growable
+import scala.collection.mutable
+import scala.language.implicitConversions
 
 case class SimpleChicago(id: Int, date: Date, coordX: Double, coordY: Double, someProperty: String)
 
@@ -110,15 +113,14 @@ object GeoInMemory extends App {
   // TODO setup some convenience functions for easier queries
   // get a FeatureReader with all features that match a filter
   implicit def stringToFilter(s: String): Filter = ECQL.toFilter(s)
-
   val ff = CommonFactoryFinder.getFilterFactory2
 
   // big enough so there are likely to be points in them
-//  available filters http://docs.geoserver.org/latest/en/user/filter/function_reference.html#filter-function-reference
+  //  available filters http://docs.geoserver.org/latest/en/user/filter/function_reference.html#filter-function-reference
   val bbox1 = "POLYGON((-89 89, -1 89, -1 -89, -89 -89, -89 89))"
   queryGeo("someProperty LIKE '%oo'")
   println("#############")
-  queryGeo(s"INTERSECTS(location, ${bbox1})")
+  val geoResult = queryGeo(s"INTERSECTS(location, ${bbox1})")
   println("#############")
   queryGeo("someProperty = 'foo' AND BBOX(location, 0, 0, 180, 90)")
   println("#############")
@@ -136,21 +138,25 @@ object GeoInMemory extends App {
   println("#############")
   queryGeo(s"BBOX(location, -180, 0, 0, 90)")
 
-  def queryGeo(f: String): Unit = {
+  def queryGeo(f: String): Seq[SimpleFeature] = {
+    val result: collection.Seq[SimpleFeature] with Growable[SimpleFeature] = mutable.Buffer[SimpleFeature]()
     println(f)
     // TODO this is not scala style
     val reader = cq.getReaderForFilter(f)
     while (reader.hasNext) {
       val next = reader.next
+      result += next
       println(next)
     }
     reader.close
+    result
   }
 
   // todo play with queries from https://github.com/locationtech/geomesa/blob/master/geomesa-memory/geomesa-cqengine/src/test/scala/org/locationtech/geomesa/memory/cqengine/utils/SampleFeatures.scala#L104-L259
 
-  // put the result back into spark
-  // TODO parallelize queried result
+  // put the result back into spark TODO put it into spark after selecting relevant features
+  //  val geoDf = geoResult.toDS()
+  //  geoDf.show
 
   // send back to hive, requires hive context!
   // TODO find a better way to store data in hive

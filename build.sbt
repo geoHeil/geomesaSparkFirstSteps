@@ -8,6 +8,7 @@ scalacOptions ++= Seq(
   "-encoding", "UTF-8",
   "-unchecked",
   "-deprecation",
+  "-feature",
   "-Xfuture",
   "-Xlint:missing-interpolator",
   "-Yno-adapted-args",

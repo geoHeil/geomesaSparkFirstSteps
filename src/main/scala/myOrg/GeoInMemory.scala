@@ -141,9 +141,10 @@ object GeoInMemory extends App {
     // TODO this is not scala style
     val reader = cq.getReaderForFilter(f)
     while (reader.hasNext) {
-      val next = reader.next()
+      val next = reader.next
       println(next)
     }
+    reader.close
   }
 
   // todo play with queries from https://github.com/locationtech/geomesa/blob/master/geomesa-memory/geomesa-cqengine/src/test/scala/org/locationtech/geomesa/memory/cqengine/utils/SampleFeatures.scala#L104-L259

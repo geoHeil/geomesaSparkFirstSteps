@@ -70,11 +70,15 @@ Some thoughts
 - this is using `intersects` queries equally implemented in geomesa memory https://github.com/locationtech/geomesa/blob/master/geomesa-memory/geomesa-cqengine/src/test/scala/org/locationtech/geomesa/memory/cqengine/utils/SampleFeatures.scala#L184-L198 And as far as I understand the thing still would need to check this for any of the m multyPolygons. Is this correct?
 - geotools (java) has a join example as well http://docs.geotools.org/latest/javadocs/org/geotools/data/Join.html with an example here http://revenant.ca/www/postgis/workshop/joins.html
 - http://getindata.com/blog/post/geospatial-analytics-on-hadoop/ is some great overview
+- check out hbase compatibility of geowave
 - other geo spatial spark solutionsgeospgeosp
     - http://geospark.datasyslab.org/ spatial join example directly on their site, but only seems to use point with rectangle and not multypolygon, based on R tree as well
     - https://github.com/harsha2010/magellan
-    = https://github.com/InitialDLab/Simba
+    - https://github.com/InitialDLab/Simba
+        - but not yet with polygons https://github.com/InitialDLab/Simba/issues/75
+        - seems to have some cooler features, but just single / couple of phd students i.e. no company with updates yet
     
     
 ## next steps
 - try all solutions on own (and bigger) amount of data
+- find out which of these solutions is using something smarter than a cartesian product
